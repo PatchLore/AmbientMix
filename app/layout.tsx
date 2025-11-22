@@ -17,6 +17,10 @@ export default function RootLayout({
       <body>
         <UserProvider>
           {children}
+          <footer className="w-full text-center py-6 text-sm text-muted-foreground border-t mt-auto">
+            <a href="/legal/terms" className="mx-3 hover:underline">Terms</a>
+            <a href="/legal/privacy" className="mx-3 hover:underline">Privacy</a>
+          </footer>
         </UserProvider>
       </body>
     </html>
