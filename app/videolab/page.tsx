@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Video, Download } from "lucide-react";
 import { buildLoop } from "@/lib/video/buildLoop";
+import ProStatusBadge from "@/app/components/ProStatusBadge";
 
 export default function VideoLabPage() {
   const [prompt, setPrompt] = useState("");
@@ -111,6 +112,7 @@ export default function VideoLabPage() {
               <span className="text-sm text-muted-foreground">(beta)</span>
             </div>
             <div className="flex items-center gap-4">
+              <ProStatusBadge />
               <Link href="/studio">
                 <Button variant="ghost" size="sm">
                   Need matching ambience audio? → AmbientMix

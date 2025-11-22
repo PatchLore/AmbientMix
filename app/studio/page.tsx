@@ -6,6 +6,7 @@ import { UploadCard } from "@/components/UploadCard";
 import { AmbienceLayersCard } from "@/components/AmbienceLayersCard";
 import { LoopAndExportCard } from "@/components/LoopAndExportCard";
 import { Button } from "@/components/ui/button";
+import ProStatusBadge from "@/app/components/ProStatusBadge";
 
 export default function StudioPage() {
   const {
@@ -32,6 +33,7 @@ export default function StudioPage() {
               <span className="text-sm text-muted-foreground">(beta)</span>
             </div>
             <div className="flex items-center gap-4">
+              <ProStatusBadge />
               <Link href="/videolab">
                 <Button variant="ghost" size="sm">
                   Generate ambient visuals → AmbientVideoLab
