@@ -42,6 +42,12 @@ export async function POST(req: Request) {
 
       ],
 
+      customer_creation: "if_required",
+
+      billing_address_collection: "auto",
+
+      customer_email: undefined, // If you add login later, you can pass email here.
+
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
 
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing/cancel`,

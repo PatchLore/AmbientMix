@@ -10,8 +10,15 @@ export default function Home() {
   const [subStatus, setSubStatus] = useState<null | any>(null);
 
   useEffect(() => {
-    // TEMP — until we wire in real customer IDs
-    const customerId = "cus_xxxxx";
+    const customerId = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("stripe_customer_id="))
+      ?.split("=")[1] || null;
+
+    if (!customerId) {
+      setSubStatus({ status: "none" });
+      return;
+    }
 
     getSubscriptionStatus(customerId).then(setSubStatus);
   }, []);
