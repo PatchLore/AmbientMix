@@ -5,6 +5,8 @@ import { useMixerState } from "@/hooks/useMixerState";
 import { UploadCard } from "@/components/UploadCard";
 import { AmbienceLayersCard } from "@/components/AmbienceLayersCard";
 import { LoopAndExportCard } from "@/components/LoopAndExportCard";
+import { SaveMixCard } from "@/components/SaveMixCard";
+import { SavedMixesCard } from "@/components/SavedMixesCard";
 import { Button } from "@/components/ui/button";
 import ProStatusBadge from "@/app/components/ProStatusBadge";
 
@@ -18,6 +20,7 @@ export default function StudioPage() {
     setThunderFrequency,
     setLoopDuration,
     setLoopRegion,
+    loadState,
   } = useMixerState();
 
   return (
@@ -72,6 +75,10 @@ export default function StudioPage() {
             state={state}
             onDurationChange={setLoopDuration}
           />
+
+          <SaveMixCard state={state} />
+
+          <SavedMixesCard onLoadMix={loadState} />
         </div>
       </div>
     </div>

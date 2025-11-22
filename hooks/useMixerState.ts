@@ -121,6 +121,10 @@ export function useMixerState() {
     }));
   }, []);
 
+  const loadState = useCallback((loadedState: MixerState) => {
+    setState(loadedState);
+  }, []);
+
   return {
     state,
     setMainTrack,
@@ -130,6 +134,7 @@ export function useMixerState() {
     setThunderFrequency,
     setLoopDuration,
     setLoopRegion,
+    loadState,
   };
 }
 
