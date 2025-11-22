@@ -1,23 +1,23 @@
 {
   "redirects": [
     {
-      "source": "https://www.yourdomain.com/:path*",
-      "destination": "https://yourdomain.com/:path*",
+      "source": "https://www.auralmix.com/:path*",
+      "destination": "https://auralmix.com/:path*",
       "permanent": true
     },
     {
-      "source": "http://yourdomain.com/:path*",
-      "destination": "https://yourdomain.com/:path*",
+      "source": "http://auralmix.com/:path*",
+      "destination": "https://auralmix.com/:path*",
       "permanent": true
     },
     {
-      "source": "http://www.yourdomain.com/:path*",
-      "destination": "https://yourdomain.com/:path*",
+      "source": "http://www.auralmix.com/:path*",
+      "destination": "https://auralmix.com/:path*",
       "permanent": true
     },
     {
       "source": "https://ambientmix.vercel.app/:path*",
-      "destination": "https://yourdomain.com/:path*",
+      "destination": "https://auralmix.com/:path*",
       "permanent": true
     }
   ]
