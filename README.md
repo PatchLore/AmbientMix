@@ -1,134 +1,133 @@
-# AmbientMix
+# 🎧 AmbientMix — README (Short Version)
 
-AmbientMix lets creators upload a music or ambience track, layer in copyright-free rain / thunder / room tones, tweak warmth and intensity, and export a perfectly looped mix for YouTube, sleep, study, or meditation videos – all in the browser.
+AmbientMix is a modern AI-enhanced ambience generator.
 
-## Features
+Users can mix ambient layers (rain, wind, fire, forest, etc.), save custom mixes, unlock premium ambience packs, and upgrade to Pro or Lifetime via Stripe.
 
-### AmbientMix (Audio Mixer)
-- **Upload main audio**: Accept MP3/WAV files (up to 50 MB, minimum 3 seconds)
-- **File validation**: Client-side validation for file type, size, and duration
-- **Waveform visualizer**: Interactive waveform display using wavesurfer.js
-- **Loop selection**: Drag handles to select start and end points for looping
-- **Built-in ambience library**: Preloaded, copyright-free loops (soft rain, window rain, distant thunder, room tone)
-- **Layer controls**: Volume, warmth sliders per ambience layer
-- **Loop duration**: Choose 10, 30, or 60 minutes
-- **Preview**: Real-time preview of the first 30 seconds using Web Audio API
-- **Export**: Render and download as MP3 using ffmpeg.wasm
+Built with Next.js 15, Supabase Auth, and Stripe Checkout.
 
-### AmbientVideoLab (Video Generator)
-- **AI video generation**: Generate ambient videos using CogVideoX via HuggingFace API
-- **Video loop builder**: Create smooth, loopable videos with speed and crossfade controls
-- **Duration selection**: Export videos in 10, 30, or 60 minute loops
-- **Client-side rendering**: All processing happens in the browser using ffmpeg.wasm
+## ⭐ Features
 
-## Getting Started
+### Core
 
-1. Install dependencies:
-```bash
-npm install
+- Mix ambient layers (rain, thunder, wind, fire, forest, etc.)
+- Volume control, presets, and ambience packs
+- Responsive UI (mobile + desktop)
+- Save unlimited mixes (for logged-in users)
+
+### Auth (Supabase Magic Link)
+
+- Passwordless login via email
+- Persistent sessions
+- Logout
+- User context (`useUser()`)
+
+### Stripe Integration
+
+- Pro Monthly subscription (£6.99)
+- Lifetime purchase (£89)
+- Stripe Checkout & Billing Portal
+- Webhook sync → Supabase `subscriptions` table
+- Automatic customer linking (`customerId` saved to profile)
+- Pro gating system for premium packs & features
+
+### Pro Features
+
+- Premium ambience packs (e.g., Deep Thunderstorm, Night Forest)
+- Multiple mixer layers
+- Unlimited saving
+- Cloud sync
+
+## 🧱 Tech Stack
+
+- Next.js 15 (App Router)
+- TypeScript
+- Supabase (Auth + DB + RLS)
+- Stripe (Checkout + Webhooks + Billing Portal)
+- TailwindCSS
+- Vercel (deployment)
+
+## 🔧 Environment Variables
+
+Add these to `.env.local` (dev) and Vercel → Environment Variables (prod):
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_URL.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Stripe Live
+STRIPE_SECRET_KEY=sk_live_xxx
+STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+NEXT_PUBLIC_PRO_MONTHLY_PRICE_ID=price_xxx
+NEXT_PUBLIC_LIFETIME_PRICE_ID=price_xxx
+
+# App
+NEXT_PUBLIC_SITE_URL=https://ambientmix.vercel.app
 ```
 
-2. Set up environment variables:
-   Create a `.env.local` file in the root directory:
-```bash
-# Required for AmbientVideoLab (video generation)
-HF_TOKEN=your_huggingface_token_here
+## 🔄 Stripe Webhook Events Used
+
+The `/api/stripe/webhook` route processes:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_succeeded`
+
+All events sync into Supabase `subscriptions` table.
+
+## 🔐 Pro Gating System
+
+Use:
+
+```tsx
+import { useSubscriptionStatus } from "@/app/hooks/useSubscriptionStatus";
 ```
 
-   To get a HuggingFace token:
-   - Sign up at [huggingface.co](https://huggingface.co)
-   - Go to Settings → Access Tokens
-   - Create a new token with read permissions
+or wrap features with:
 
-3. Add ambience audio files:
-   Place your copyright-free ambience loops in `public/ambience/`:
-   - `soft-rain.mp3`
-   - `window-rain.mp3`
-   - `distant-thunder.mp3`
-   - `room-tone.mp3`
-
-   **Note:** These files are not included in the repository. You'll need to source copyright-free ambience loops. Good sources include:
-   - [Freesound.org](https://freesound.org) - Search for "rain", "thunder", "room tone" with CC0 license
-   - [Zapsplat](https://www.zapsplat.com) - Free sound effects library
-   - [BBC Sound Effects Library](https://sound-effects.bbcrewind.co.uk) - Free for personal use
-   - Create your own loops (30-60 seconds, seamless loops work best)
-
-4. Run the development server:
-```bash
-npm run dev
+```tsx
+<ProGate>
+  <PremiumFeature />
+</ProGate>
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## 📁 Database Tables (Supabase)
 
-   - `/studio` - AmbientMix audio mixer
-   - `/videolab` - AmbientVideoLab video generator
+### `profiles`
+- `id`
+- `email`
+- `customer_id`
 
-## Project Structure
+### `subscriptions`
+- `customer_id`
+- `status`
+- `plan_type` (`subscription` | `lifetime`)
+- `current_period_end`
+- `price_id`
 
-```
-├── app/
-│   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Landing page
-│   ├── studio/
-│   │   └── page.tsx        # AmbientMix audio mixer UI
-│   ├── videolab/
-│   │   └── page.tsx        # AmbientVideoLab video generator UI
-│   └── api/
-│       └── generate-video/
-│           └── route.ts    # HuggingFace API proxy for video generation
-├── components/
-│   ├── ui/                 # shadcn/ui components
-│   ├── UploadCard.tsx      # File upload with validation & waveform
-│   ├── Waveform.tsx        # Audio waveform visualizer with loop selection
-│   ├── AmbienceLayersCard.tsx  # Ambience controls
-│   └── LoopAndExportCard.tsx   # Export controls
-├── hooks/
-│   └── useMixerState.ts    # Mixer state management
-├── lib/
-│   ├── audio/
-│   │   ├── renderMix.ts    # Audio rendering with ffmpeg.wasm
-│   │   └── preview.ts      # Preview functionality with Web Audio API
-│   ├── video/
-│   │   └── buildLoop.ts    # Video loop builder with ffmpeg.wasm
-│   └── utils.ts            # Utility functions
-└── types/
-    └── audio.ts            # TypeScript types
-```
+### `mixes`
+- `user_id`
+- `name`
+- `settings` (JSON)
 
-## Tech Stack
+All tables protected using RLS.
 
-- **Next.js 15** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **shadcn/ui** components
-- **wavesurfer.js** (waveform visualization and loop selection)
-- **Web Audio API** (for audio preview)
-- **ffmpeg.wasm** (client-side audio/video rendering)
-- **HuggingFace Inference API** (AI video generation)
+## 🚀 Deployment Notes
 
-## Completed Features
+- Vercel automatically builds Next.js 15
+- Stripe keys and webhook secret must exist in Vercel env
+- Webhook endpoint: `https://ambientmix.vercel.app/api/stripe/webhook`
+- Supabase service role key used ONLY server-side (webhook, sync)
 
-- ✅ File upload with drag & drop
-- ✅ Client-side file validation (type, size, duration)
-- ✅ Audio waveform visualizer
-- ✅ Loop region selection with draggable handles
-- ✅ Audio mixing with ffmpeg.wasm
-- ✅ Volume and warmth filters per layer
-- ✅ Real-time audio preview
-- ✅ AI video generation via HuggingFace API
-- ✅ Video loop builder with speed and crossfade controls
-- ✅ Cross-links between AmbientMix and AmbientVideoLab
+## 📦 Roadmap
 
-## Roadmap
-
-- [ ] User accounts and saved presets
-- [ ] Higher quality exports (320kbps, WAV)
-- [ ] More ambience types and variations
-- [ ] Batch processing for multiple files
-- [ ] Cloud storage integration
-- [ ] Real-time collaboration
-
-## License
-
-MIT
-
+- Add more ambience packs
+- Add AI-generated ambience layers
+- Add "My Mixes" page UI
+- Add onboarding flow
+- Add analytics + usage tracking
