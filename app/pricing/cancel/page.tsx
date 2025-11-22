@@ -10,7 +10,7 @@ export default function CancelPage() {
       <AlertTriangle className="w-20 h-20 text-muted-foreground mb-6" />
       <h1 className="text-3xl font-bold mb-2">Payment Cancelled</h1>
       <p className="text-muted-foreground mb-6 max-w-md">
-        No payment was processed. You can return to the pricing page if you'd like to try again.
+        No payment was processed. You can return to the pricing page if you&apos;d like to try again.
       </p>
       <Link href="/pricing">
         <Button variant="secondary" size="lg">
