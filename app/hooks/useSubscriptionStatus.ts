@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/app/lib/supabaseClient";
 
 export function useSubscriptionStatus() {
   const [status, setStatus] = useState<null | {
@@ -9,24 +10,45 @@ export function useSubscriptionStatus() {
   }>(null);
 
   useEffect(() => {
-    const customerId = document.cookie
-      .split("; ")
-      .find((c) => c.startsWith("stripe_customer_id="))
-      ?.split("=")[1];
+    async function checkSubscription() {
+      // 1. Try to get customerId from Supabase profile
+      const { data: userData } = await supabase.auth.getUser();
+      let customerId: string | undefined;
 
-    if (!customerId) {
-      setStatus({ status: "none" });
-      return;
+      if (userData?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("customer_id")
+          .eq("id", userData.user.id)
+          .single();
+
+        customerId = profile?.customer_id;
+      }
+
+      // 2. Fallback to cookie if not in Supabase
+      if (!customerId) {
+        customerId = document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("stripe_customer_id="))
+          ?.split("=")[1];
+      }
+
+      if (!customerId) {
+        setStatus({ status: "none" });
+        return;
+      }
+
+      fetch("/api/subscription/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId }),
+      })
+        .then((res) => res.json())
+        .then((data) => setStatus(data))
+        .catch(() => setStatus({ status: "none" }));
     }
 
-    fetch("/api/subscription/status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ customerId }),
-    })
-      .then((res) => res.json())
-      .then((data) => setStatus(data))
-      .catch(() => setStatus({ status: "none" }));
+    checkSubscription();
   }, []);
 
   return status;

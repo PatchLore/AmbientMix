@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/app/lib/supabaseClient";
 
 function SuccessContent() {
   const params = useSearchParams();
@@ -17,9 +18,19 @@ function SuccessContent() {
       body: JSON.stringify({ sessionId }),
     })
       .then((res) => res.json())
-      .then((data) => {
-        if (data.customerId) {
-          document.cookie = `stripe_customer_id=${data.customerId}; path=/; max-age=${60 * 60 * 24 * 365}`;
+      .then(async (data) => {
+        if (!data.customerId) return;
+
+        // 1. Save to cookie (fallback)
+        document.cookie = `stripe_customer_id=${data.customerId}; path=/; max-age=${60 * 60 * 24 * 365}`;
+
+        // 2. Save to Supabase (persistent)
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          await supabase
+            .from("profiles")
+            .update({ customer_id: data.customerId })
+            .eq("id", userData.user.id);
         }
       })
       .catch((err) => {
