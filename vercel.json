@@ -1,6 +1,24 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "installCommand": "npm install"
+  "redirects": [
+    {
+      "source": "https://www.yourdomain.com/:path*",
+      "destination": "https://yourdomain.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "http://yourdomain.com/:path*",
+      "destination": "https://yourdomain.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "http://www.yourdomain.com/:path*",
+      "destination": "https://yourdomain.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://ambientmix.vercel.app/:path*",
+      "destination": "https://yourdomain.com/:path*",
+      "permanent": true
+    }
+  ]
 }
-
