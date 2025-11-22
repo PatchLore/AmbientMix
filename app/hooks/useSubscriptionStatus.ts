@@ -7,6 +7,9 @@ export function useSubscriptionStatus() {
   const [status, setStatus] = useState<null | {
     status: string;
     type?: string;
+    renews?: number;
+    plan?: string;
+    customerId?: string;
   }>(null);
 
   useEffect(() => {
@@ -44,7 +47,7 @@ export function useSubscriptionStatus() {
         body: JSON.stringify({ customerId }),
       })
         .then((res) => res.json())
-        .then((data) => setStatus(data))
+        .then((data) => setStatus({ ...data, customerId }))
         .catch(() => setStatus({ status: "none" }));
     }
 
