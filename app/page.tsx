@@ -1,11 +1,53 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSubscriptionStatus } from "@/app/lib/getSubscriptionStatus";
 
 export default function Home() {
+  const [subStatus, setSubStatus] = useState<null | any>(null);
+
+  useEffect(() => {
+    // TEMP — until we wire in real customer IDs
+    const customerId = "cus_xxxxx";
+
+    getSubscriptionStatus(customerId).then(setSubStatus);
+  }, []);
+
+  if (!subStatus) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center">
+        <div>Loading subscription…</div>
+      </div>
+    );
+  }
+
+  // Show subscription status banner
+  const statusBanner = subStatus.status === "none" ? (
+    <div className="text-center mb-8 p-4 bg-muted rounded-lg">
+      <p className="text-lg mb-4">You are not a Pro user.</p>
+      <Link href="/pricing">
+        <Button>Upgrade to Pro</Button>
+      </Link>
+    </div>
+  ) : subStatus.type === "lifetime" ? (
+    <div className="text-center mb-8 p-4 bg-primary/10 rounded-lg">
+      <div className="text-xl font-semibold">🔥 Lifetime Access Active</div>
+    </div>
+  ) : subStatus.type === "subscription" ? (
+    <div className="text-center mb-8 p-4 bg-primary/10 rounded-lg">
+      <div className="text-xl font-semibold">⭐ Pro Monthly Active</div>
+    </div>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 py-16">
+        {/* Subscription Status Banner */}
+        {statusBanner}
+
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
