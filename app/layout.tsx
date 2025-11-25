@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { UserProvider } from "@/app/context/UserContext";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "AmbientMix - Add rain, thunder, and ambience to your audio",
@@ -22,6 +23,7 @@ export default function RootLayout({
             <a href="/legal/privacy" className="mx-3 hover:underline">Privacy</a>
           </footer>
         </UserProvider>
+        <Analytics />
       </body>
     </html>
   );
