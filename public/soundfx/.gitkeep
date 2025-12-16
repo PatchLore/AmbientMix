@@ -1,0 +1,13 @@
+# Sound Effects Directory
+# Place your sound effect audio files here (.wav or .mp3)
+# Files will be automatically detected and loaded by the app
+#
+# Examples:
+# - rain-heavy.wav
+# - thunder-rumble.mp3
+# - wind-gust.wav
+# - fire-crackle.mp3
+#
+# Files can be organized in subfolders, but they will be flattened automatically
+# when detected by the loader.
+

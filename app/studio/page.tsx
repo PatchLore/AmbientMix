@@ -7,6 +7,7 @@ import { AmbienceLayersCard } from "@/components/AmbienceLayersCard";
 import { LoopAndExportCard } from "@/components/LoopAndExportCard";
 import { SaveMixCard } from "@/components/SaveMixCard";
 import { SavedMixesCard } from "@/components/SavedMixesCard";
+import { SoundFXCard } from "@/components/SoundFXCard";
 import { Button } from "@/components/ui/button";
 import ProStatusBadge from "@/app/components/ProStatusBadge";
 
@@ -79,6 +80,8 @@ export default function StudioPage() {
           <SaveMixCard state={state} />
 
           <SavedMixesCard onLoadMix={loadState} />
+
+          <SoundFXCard />
         </div>
       </div>
     </div>
