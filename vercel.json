@@ -1,22 +1,7 @@
 {
   "redirects": [
     {
-      "source": "https://www.auralmix.com/:path*",
-      "destination": "https://auralmix.com/:path*",
-      "permanent": true
-    },
-    {
-      "source": "http://auralmix.com/:path*",
-      "destination": "https://auralmix.com/:path*",
-      "permanent": true
-    },
-    {
-      "source": "http://www.auralmix.com/:path*",
-      "destination": "https://auralmix.com/:path*",
-      "permanent": true
-    },
-    {
-      "source": "https://ambientmix.vercel.app/:path*",
+      "source": "/:path*",
       "destination": "https://auralmix.com/:path*",
       "permanent": true
     }
