@@ -1,22 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseServer } from "@/app/lib/supabaseServer";
 
-const HF_TOKEN = process.env.HF_TOKEN || process.env.NEXT_PUBLIC_HF_TOKEN;
 const HF_API_URL = "https://api-inference.huggingface.co/models/zai-org/CogVideoX-5b";
+const MAX_PROMPT_LENGTH = 1000;
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json();
+    // Require an authenticated user before triggering external inference.
+    const supabase = await supabaseServer();
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!prompt || typeof prompt !== "string") {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    const prompt = (body as { prompt?: unknown })?.prompt;
+
+    if (typeof prompt !== "string") {
       return NextResponse.json(
         { error: "Prompt is required and must be a string" },
         { status: 400 }
       );
     }
 
-    if (!HF_TOKEN) {
+    const trimmedPrompt = prompt.trim();
+
+    if (!trimmedPrompt) {
       return NextResponse.json(
-        { error: "HuggingFace token not configured. Please set HF_TOKEN environment variable." },
+        { error: "Prompt must not be empty" },
+        { status: 400 }
+      );
+    }
+
+    if (trimmedPrompt.length > MAX_PROMPT_LENGTH) {
+      return NextResponse.json(
+        { error: `Prompt must be at most ${MAX_PROMPT_LENGTH} characters` },
+        { status: 400 }
+      );
+    }
+
+    // Server-side secret only. Never expose this to client code and never
+    // fall back to a NEXT_PUBLIC_* variable.
+    const hfToken = process.env.HF_TOKEN;
+
+    if (!hfToken) {
+      return NextResponse.json(
+        { error: "Video generation is not configured. Please try again later." },
         { status: 500 }
       );
     }
@@ -25,15 +60,18 @@ export async function POST(request: NextRequest) {
     const response = await fetch(HF_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${HF_TOKEN}`,
+        "Authorization": `Bearer ${hfToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ inputs: prompt }),
+      body: JSON.stringify({ inputs: trimmedPrompt }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HuggingFace API error: ${response.status} - ${errorText}`);
+      console.error("HuggingFace API error:", response.status);
+      return NextResponse.json(
+        { error: "Failed to generate video" },
+        { status: 502 }
+      );
     }
 
     // Convert response to buffer
@@ -49,10 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Video generation error:", error);
     return NextResponse.json(
-      {
-        error: "Failed to generate video",
-        message: error instanceof Error ? error.message : "Unknown error",
-      },
+      { error: "Failed to generate video" },
       { status: 500 }
     );
   }

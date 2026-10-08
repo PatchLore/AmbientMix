@@ -20,7 +20,9 @@ export default function Home() {
       return;
     }
 
-    getSubscriptionStatus(customerId).then(setSubStatus);
+    getSubscriptionStatus(customerId)
+      .then(setSubStatus)
+      .catch(() => setSubStatus({ status: "none" }));
   }, []);
 
   if (!subStatus) {

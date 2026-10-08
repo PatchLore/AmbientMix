@@ -6,29 +6,67 @@ import Stripe from "stripe";
 
 
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
-
-
+// Note: guest checkout is intentionally supported (the success page links the
+// purchase to a profile via cookie when available), so authentication is not
+// required here. Protection comes from the strict price allowlist below.
 
 export async function POST(req: Request) {
 
   try {
 
-    const { priceId } = await req.json();
+    let priceId: unknown;
+    try {
+      priceId = (await req.json() as { priceId?: unknown })?.priceId;
+    } catch {
 
-
-
-    if (!priceId) {
-
-      return NextResponse.json({ error: "Missing priceId" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
 
     }
 
 
 
+    if (!priceId || typeof priceId !== "string") {
+
+      return NextResponse.json({ error: "Missing priceId" }, { status: 400 });
+
+    }
+
+    // Only permit the known application price IDs. This resolves the naming
+    // mismatch by accepting every configured name: the server-side lifetime
+    // ID and both public IDs used by the pricing page.
+    const allowedPriceIds = new Set(
+      [
+        process.env.STRIPE_LIFETIME_PRICE_ID,
+        process.env.NEXT_PUBLIC_LIFETIME_PRICE_ID,
+        process.env.NEXT_PUBLIC_PRO_MONTHLY_PRICE_ID,
+      ].filter((id): id is string => typeof id === "string" && id.length > 0)
+    );
+
+    if (allowedPriceIds.size === 0) {
+      console.error("Stripe Checkout Error: no price IDs configured");
+      return NextResponse.json({ error: "Checkout unavailable" }, { status: 500 });
+    }
+
+    if (!allowedPriceIds.has(priceId)) {
+      return NextResponse.json({ error: "Invalid priceId" }, { status: 400 });
+    }
+
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      console.error("Stripe Checkout Error: Stripe is not configured");
+      return NextResponse.json({ error: "Checkout unavailable" }, { status: 500 });
+    }
+    const stripe = new Stripe(secretKey, {});
+
+    const lifetimePriceIds = new Set(
+      [process.env.STRIPE_LIFETIME_PRICE_ID, process.env.NEXT_PUBLIC_LIFETIME_PRICE_ID].filter(
+        (id): id is string => typeof id === "string" && id.length > 0
+      )
+    );
+
     const session = await stripe.checkout.sessions.create({
 
-      mode: priceId === process.env.STRIPE_LIFETIME_PRICE_ID ? "payment" : "subscription",
+      mode: lifetimePriceIds.has(priceId) ? "payment" : "subscription",
 
       line_items: [
 
@@ -46,7 +84,7 @@ export async function POST(req: Request) {
 
       billing_address_collection: "auto",
 
-      customer_email: undefined, // If you add login later, you can pass email here.
+      customer_email: undefined,
 
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
 
@@ -58,11 +96,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
 
-  } catch (error: any) {
+  } catch (error) {
 
     console.error("Stripe Checkout Error:", error);
 
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
 
   }
 

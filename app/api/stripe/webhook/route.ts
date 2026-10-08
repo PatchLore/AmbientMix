@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { supabaseAdmin } from "@/app/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/app/lib/supabaseAdmin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripe(): Stripe | null {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    return null;
+  }
+  return new Stripe(secretKey);
+}
 
 async function buffer(readable: ReadableStream<Uint8Array>): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
@@ -29,18 +35,31 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
 
+  const stripe = getStripe();
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!stripe || !webhookSecret) {
+    console.error("❌ Stripe webhook is not configured");
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+
   try {
     event = stripe.webhooks.constructEvent(
       buf,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      webhookSecret
     );
-  } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  } catch (err) {
+    console.error("❌ Webhook signature verification failed");
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   console.log(`📩 Received event: ${event.type}`);
+
+  const supabaseAdmin = getSupabaseAdmin();
+  if (!supabaseAdmin) {
+    console.error("❌ Supabase admin client is not configured");
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 
   try {
     switch (event.type) {

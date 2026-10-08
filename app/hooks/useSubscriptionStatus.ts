@@ -41,14 +41,28 @@ export function useSubscriptionStatus() {
         return;
       }
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
       fetch("/api/subscription/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customerId }),
+        signal: controller.signal,
       })
-        .then((res) => res.json())
-        .then((data) => setStatus({ ...data, customerId }))
-        .catch(() => setStatus({ status: "none" }));
+        .then((res) => {
+          if (!res.ok) {
+            // 401/403/5xx all degrade to the free tier, never a stuck loader.
+            setStatus({ status: "none" });
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data) setStatus({ ...data, customerId });
+        })
+        .catch(() => setStatus({ status: "none" }))
+        .finally(() => clearTimeout(timeout));
     }
 
     checkSubscription();
